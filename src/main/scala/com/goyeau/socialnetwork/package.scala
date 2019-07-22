@@ -2,14 +2,14 @@ package com.goyeau
 
 import java.net.URI
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-
-import com.lightbend.kafka.scala.streams.{KStreamS, StreamsBuilderS}
 import io.circe.{Decoder, Encoder}
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord, RecordMetadata}
-import org.apache.kafka.streams.Consumed
 import org.apache.kafka.streams.kstream.Produced
+import org.apache.kafka.streams.scala.StreamsBuilder
+import org.apache.kafka.streams.scala.kstream.{Consumed, KStream}
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 package object socialnetwork {
 
@@ -22,16 +22,16 @@ package object socialnetwork {
     }
   }
 
-  implicit class StreamsBuilderSOps(streamsBuilder: StreamsBuilderS) {
+  implicit class StreamsBuilderSOps(streamsBuilder: StreamsBuilder) {
     def streamFromRecord[V] = new StreamBuilder[V]
 
     class StreamBuilder[V] {
-      def apply[K]()(implicit record: Record[K, V], consumed: Consumed[K, V]): KStreamS[K, V] =
+      def apply[K]()(implicit record: Record[K, V], consumed: Consumed[K, V]): KStream[K, V] =
         streamsBuilder.stream[K, V](record.topic)
     }
   }
 
-  implicit class KStreamSOps[K, V](stream: KStreamS[K, V]) {
-    def toTopic(implicit record: Record[K, V], produced: Produced[K, V]) = stream.to(record.topic)
+  implicit class KStreamSOps[K, V](stream: KStream[K, V]) {
+    def toTopic(implicit record: Record[K, V], produced: Produced[K, V]): Unit = stream.to(record.topic)
   }
 }
